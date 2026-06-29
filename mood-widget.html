@@ -1,0 +1,388 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>今日心情</title>
+  <style>
+    /* ===== 全局样式 ===== */
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      min-height: 100vh;
+      background: #ffffff;
+      font-family: -apple-system, BlinkMacSystemFont, "PingFang SC", "Microsoft YaHei", "Helvetica Neue", sans-serif;
+      padding: 20px;
+    }
+
+    /* ===== 卡片容器 ===== */
+    .card {
+      background: #ffffff;
+      border-radius: 20px;
+      border: 1px solid #f5f0eb;
+      box-shadow: 0 2px 20px rgba(0, 0, 0, 0.03), 0 8px 40px rgba(0, 0, 0, 0.02);
+      padding: 40px 36px 36px;
+      max-width: 340px;
+      width: 100%;
+      text-align: center;
+    }
+
+    /* ===== 标题 ===== */
+    .card-title {
+      font-size: 15px;
+      font-weight: 500;
+      color: #b8a9a0;
+      letter-spacing: 2px;
+      margin-bottom: 28px;
+    }
+
+    .card-title .heart {
+      color: #e8c5b0;
+    }
+
+    /* ===== 人物区块 ===== */
+    .person-section {
+      margin-bottom: 24px;
+    }
+
+    .person-section:last-child {
+      margin-bottom: 0;
+    }
+
+    .person-label {
+      font-size: 14px;
+      color: #4a3f38;
+      font-weight: 500;
+      margin-bottom: 12px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+    }
+
+    /* ===== 人物标识图形（前期用简单图形） ===== */
+    .person-icon {
+      display: inline-block;
+      width: 16px;
+      height: 16px;
+      flex-shrink: 0;
+    }
+
+    /* 豆浆 — 圆形 */
+    .person-icon.doujiang {
+      background: #d4a990;
+      border-radius: 50%;
+    }
+
+    /* 水水 — 方形（小圆角） */
+    .person-icon.shuishui {
+      background: #b0a4c0;
+      border-radius: 3px;
+    }
+
+    /* ===== 分隔线 ===== */
+    .divider {
+      width: 40px;
+      height: 1px;
+      background: #ede8e3;
+      margin: 24px auto;
+    }
+
+    /* ===== 心情按钮组 ===== */
+    .mood-buttons {
+      display: flex;
+      justify-content: center;
+      gap: 12px;
+      flex-wrap: wrap;
+    }
+
+    .mood-btn {
+      width: 52px;
+      height: 52px;
+      border-radius: 50%;
+      border: 2px solid #ede8e3;
+      background: #fafaf8;
+      cursor: pointer;
+      font-size: 24px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: all 0.2s ease;
+      -webkit-tap-highlight-color: transparent;
+      user-select: none;
+      position: relative;
+    }
+
+    .mood-btn:hover {
+      border-color: #d4c8b8;
+      background: #fdfaf6;
+      transform: scale(1.05);
+    }
+
+    .mood-btn:active {
+      transform: scale(0.95);
+      transition: transform 0.1s ease;
+    }
+
+    /* ===== 各心情选中态颜色 ===== */
+    .mood-btn.happy.selected {
+      border-color: #e8c878;
+      background: #fef9ed;
+      box-shadow: 0 0 0 4px rgba(232, 200, 120, 0.15);
+    }
+
+    .mood-btn.neutral.selected {
+      border-color: #b0b8c0;
+      background: #f4f5f6;
+      box-shadow: 0 0 0 4px rgba(176, 184, 192, 0.15);
+    }
+
+    .mood-btn.angry.selected {
+      border-color: #e08880;
+      background: #fdf4f3;
+      box-shadow: 0 0 0 4px rgba(224, 136, 128, 0.15);
+    }
+
+    .mood-btn.sad.selected {
+      border-color: #88a4c8;
+      background: #f3f6fa;
+      box-shadow: 0 0 0 4px rgba(136, 164, 200, 0.15);
+    }
+
+    /* ===== 加载 / 错误提示 ===== */
+    .status-text {
+      font-size: 13px;
+      color: #c4b8af;
+      margin-top: 20px;
+      min-height: 20px;
+    }
+
+    .status-text.error {
+      color: #d4a0a0;
+    }
+
+    /* ===== 响应式适配 ===== */
+    @media (max-width: 420px) {
+      .card {
+        padding: 28px 20px 24px;
+        border-radius: 16px;
+      }
+
+      .mood-btn {
+        width: 46px;
+        height: 46px;
+        font-size: 22px;
+      }
+
+      .mood-buttons {
+        gap: 10px;
+      }
+    }
+  </style>
+</head>
+<body>
+
+  <div class="card">
+    <!-- 标题 -->
+    <div class="card-title">
+      <span class="heart">💕</span> 今日心情
+    </div>
+
+    <!-- 豆浆 -->
+    <div class="person-section">
+      <div class="person-label">
+        <span class="person-icon doujiang"></span> 豆浆
+      </div>
+      <div class="mood-buttons" id="doujiang-buttons"></div>
+    </div>
+
+    <!-- 分隔线 -->
+    <div class="divider"></div>
+
+    <!-- 水水 -->
+    <div class="person-section">
+      <div class="person-label">
+        <span class="person-icon shuishui"></span> 水水
+      </div>
+      <div class="mood-buttons" id="shuishui-buttons"></div>
+    </div>
+
+    <!-- 状态提示 -->
+    <div class="status-text" id="status"></div>
+  </div>
+
+  <!-- ============================================ -->
+  <!--  Firebase SDK（ES Module 方式）               -->
+  <!-- ============================================ -->
+  <script type="module">
+    // ---- 引入 Firebase ----
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/12.15.0/firebase-app.js";
+    import {
+      getFirestore,
+      doc,
+      setDoc,
+      onSnapshot
+    } from "https://www.gstatic.com/firebasejs/12.15.0/firebase-firestore.js";
+
+    // ---- Firebase 配置 ----
+    const firebaseConfig = {
+      apiKey: "AIzaSyDH2ars1C0MrTORrrwA45rWxYnNjWAUsOQ",
+      authDomain: "notion-mood.firebaseapp.com",
+      projectId: "notion-mood",
+      storageBucket: "notion-mood.firebasestorage.app",
+      messagingSenderId: "299630555840",
+      appId: "1:299630555840:web:908b6b35865a96ac8fb325"
+    };
+
+    const app = initializeApp(firebaseConfig);
+    const db = getFirestore(app);
+
+    // ============================================
+    //  ⚙️ 心情配置
+    //     前期用 emoji，后期替换为狗图片 <img> 标签
+    //     格式：doujiangIcon / shuishuiIcon 各自独立
+    // ============================================
+    const MOODS = [
+      {
+        value: 'happy',
+        label: '开心',
+        cssClass: 'happy',
+        // 🔧 后期换成狗图片，例如：
+        // doujiangIcon: '<img src="博美-开心.png" style="width:32px;height:32px" />',
+        doujiangIcon: '😊',
+        shuishuiIcon: '😊',
+      },
+      {
+        value: 'neutral',
+        label: '平淡',
+        cssClass: 'neutral',
+        doujiangIcon: '😐',
+        shuishuiIcon: '😐',
+      },
+      {
+        value: 'angry',
+        label: '生气',
+        cssClass: 'angry',
+        doujiangIcon: '😡',
+        shuishuiIcon: '😡',
+      },
+      {
+        value: 'sad',
+        label: '伤心',
+        cssClass: 'sad',
+        doujiangIcon: '😢',
+        shuishuiIcon: '😢',
+      },
+    ];
+
+    // ============================================
+    //  🔧 人物名称（可自定义）
+    // ============================================
+    const PERSON_A = 'doujiang';   // 豆浆 — 对应 Firestore 字段名
+    const PERSON_B = 'shuishui';   // 水水 — 对应 Firestore 字段名
+
+    // ============================================
+    //  工具函数
+    // ============================================
+    function getTodayStr() {
+      const now = new Date();
+      const y = now.getFullYear();
+      const m = String(now.getMonth() + 1).padStart(2, '0');
+      const d = String(now.getDate()).padStart(2, '0');
+      return `${y}-${m}-${d}`;
+    }
+
+    // ============================================
+    //  渲染心情按钮
+    // ============================================
+    function buildButtons(containerId, personKey, iconKey, selectedMood) {
+      const container = document.getElementById(containerId);
+      container.innerHTML = '';
+
+      MOODS.forEach(mood => {
+        const btn = document.createElement('button');
+        btn.className = `mood-btn ${mood.cssClass}`;
+        btn.innerHTML = mood[iconKey];
+        btn.title = mood.label;
+
+        if (mood.value === selectedMood) {
+          btn.classList.add('selected');
+        }
+
+        btn.addEventListener('click', async () => {
+          // 乐观更新 UI：立刻高亮选中按钮
+          document.querySelectorAll(`#${containerId} .mood-btn`).forEach(b => b.classList.remove('selected'));
+          btn.classList.add('selected');
+
+          // 写入 Firestore
+          try {
+            await setDoc(
+              doc(db, 'moods', getTodayStr()),
+              { [personKey]: mood.value },
+              { merge: true }
+            );
+            setStatus('已保存', false);
+          } catch (err) {
+            console.error('保存失败:', err);
+            setStatus('保存失败，请检查网络', true);
+            // 保存失败时重新从数据库恢复状态
+            // onSnapshot 会自动触发恢复
+          }
+        });
+
+        container.appendChild(btn);
+      });
+    }
+
+    function setStatus(msg, isError) {
+      const el = document.getElementById('status');
+      el.textContent = msg;
+      el.className = 'status-text' + (isError ? ' error' : '');
+      if (!isError && msg) {
+        setTimeout(() => {
+          if (el.textContent === msg) el.textContent = '';
+        }, 2000);
+      }
+    }
+
+    // ============================================
+    //  实时监听今天的 moods 文档
+    // ============================================
+    function initRealtime() {
+      const todayStr = getTodayStr();
+      const docRef = doc(db, 'moods', todayStr);
+
+      onSnapshot(docRef, (snapshot) => {
+        const data = snapshot.exists() ? snapshot.data() : {};
+
+        // 渲染豆浆按钮
+        buildButtons('doujiang-buttons', PERSON_A, 'doujiangIcon', data[PERSON_A]);
+        // 渲染水水按钮
+        buildButtons('shuishui-buttons', PERSON_B, 'shuishuiIcon', data[PERSON_B]);
+
+        setStatus('', false);
+      }, (err) => {
+        console.error('监听失败:', err);
+        setStatus('连接失败，请刷新页面', true);
+        // 即使监听失败也渲染空白按钮
+        buildButtons('doujiang-buttons', PERSON_A, 'doujiangIcon', null);
+        buildButtons('shuishui-buttons', PERSON_B, 'shuishuiIcon', null);
+      });
+    }
+
+    // ============================================
+    //  启动
+    // ============================================
+    setStatus('加载中...', false);
+    initRealtime();
+  </script>
+
+</body>
+</html>
