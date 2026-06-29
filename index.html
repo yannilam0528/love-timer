@@ -1,0 +1,219 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>我们的时光</title>
+  <style>
+    /* ===== 全局样式 ===== */
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      min-height: 100vh;
+      background: #faf8f5;
+      font-family: -apple-system, BlinkMacSystemFont, "PingFang SC", "Microsoft YaHei", "Helvetica Neue", sans-serif;
+      padding: 20px;
+    }
+
+    /* ===== 卡片容器 ===== */
+    .card {
+      background: #ffffff;
+      border-radius: 20px;
+      box-shadow: 0 2px 20px rgba(0, 0, 0, 0.04), 0 8px 40px rgba(0, 0, 0, 0.03);
+      padding: 40px 36px 36px;
+      max-width: 380px;
+      width: 100%;
+      text-align: center;
+    }
+
+    /* ===== 标题 ===== */
+    .card-title {
+      font-size: 15px;
+      font-weight: 500;
+      color: #b8a9a0;
+      letter-spacing: 2px;
+      margin-bottom: 32px;
+    }
+
+    .card-title .heart {
+      color: #e8c5b0;
+    }
+
+    /* ===== 计时项 ===== */
+    .counter-item {
+      margin-bottom: 28px;
+    }
+
+    .counter-item:last-child {
+      margin-bottom: 0;
+    }
+
+    /* ===== 分隔线 ===== */
+    .divider {
+      width: 40px;
+      height: 1px;
+      background: #ede8e3;
+      margin: 28px auto;
+    }
+
+    /* ===== 标签文字 ===== */
+    .counter-label {
+      font-size: 14px;
+      color: #b8a9a0;
+      margin-bottom: 8px;
+      font-weight: 400;
+      letter-spacing: 1px;
+    }
+
+    /* ===== 大数字 ===== */
+    .counter-number {
+      font-size: 56px;
+      font-weight: 300;
+      color: #4a3f38;
+      line-height: 1.1;
+      margin-bottom: 6px;
+      letter-spacing: -2px;
+      font-feature-settings: "tnum";
+      font-variant-numeric: tabular-nums;
+    }
+
+    .counter-number .unit {
+      font-size: 18px;
+      font-weight: 400;
+      color: #b8a9a0;
+      letter-spacing: 1px;
+      margin-left: 4px;
+    }
+
+    /* ===== 日期说明 ===== */
+    .counter-date {
+      font-size: 13px;
+      color: #c4b8af;
+      font-weight: 400;
+    }
+
+    .counter-date .icon {
+      margin-right: 4px;
+    }
+
+    /* ===== 特殊日子的提示 ===== */
+    .milestone {
+      margin-top: 10px;
+      font-size: 13px;
+      color: #d4a990;
+      font-weight: 500;
+      background: #fdf7f3;
+      display: inline-block;
+      padding: 4px 14px;
+      border-radius: 20px;
+    }
+
+    /* ===== 响应式适配 ===== */
+    @media (max-width: 420px) {
+      .card {
+        padding: 32px 24px 28px;
+        border-radius: 16px;
+      }
+
+      .counter-number {
+        font-size: 44px;
+      }
+
+      .card-title {
+        font-size: 14px;
+        margin-bottom: 24px;
+      }
+
+      .counter-item {
+        margin-bottom: 22px;
+      }
+
+      .divider {
+        margin: 22px auto;
+      }
+    }
+  </style>
+</head>
+<body>
+
+  <div class="card">
+
+    <!-- 标题 -->
+    <div class="card-title">
+      <span class="heart">💕</span> 我们的时光
+    </div>
+
+    <!-- 正计时：在一起 -->
+    <div class="counter-item">
+      <div class="counter-label">我们已经在一起</div>
+      <div class="counter-number" id="countup-days">0<span class="unit">天</span></div>
+      <div class="counter-date">
+        <span class="icon">📅</span> 从 <span id="countup-start"></span> 至今
+      </div>
+      <div class="milestone" id="countup-milestone" style="display: none;"></div>
+    </div>
+
+
+  </div>
+
+  <script>
+    // ============================================
+    //  🔧 在这里修改你的日期！改完保存刷新即可
+    //     格式：'YYYY-MM-DD'
+    // ============================================
+
+    const ANNIVERSARY_DATE = '2025-12-30';  // 💕 在一起的日子
+
+    // ============================================
+    //  以下是计算逻辑，不用管 ~
+    // ============================================
+
+    function formatDate(dateStr) {
+      const d = new Date(dateStr + 'T00:00:00');
+      const y = d.getFullYear();
+      const m = d.getMonth() + 1;
+      const day = d.getDate();
+      return y + '年' + m + '月' + day + '日';
+    }
+
+    function daysBetween(dateStr1, dateStr2) {
+      const d1 = new Date(dateStr1 + 'T00:00:00');
+      const d2 = new Date(dateStr2 + 'T00:00:00');
+      return Math.floor((d2 - d1) / (1000 * 60 * 60 * 24));
+    }
+
+    function updateCounters() {
+      const today = new Date();
+      const todayStr = today.getFullYear() + '-'
+        + String(today.getMonth() + 1).padStart(2, '0') + '-'
+        + String(today.getDate()).padStart(2, '0');
+
+      // --- 正计时：在一起的天数 ---
+      const togetherDays = daysBetween(ANNIVERSARY_DATE, todayStr);
+      document.getElementById('countup-days').innerHTML = togetherDays + '<span class="unit">天</span>';
+      document.getElementById('countup-start').textContent = formatDate(ANNIVERSARY_DATE);
+
+      // 特别里程碑提示（整百天）
+      const milestoneEl = document.getElementById('countup-milestone');
+      if (togetherDays > 0 && togetherDays % 100 === 0) {
+        milestoneEl.textContent = '🎉 ' + togetherDays + ' 天里程碑！';
+        milestoneEl.style.display = 'inline-block';
+      } else {
+        milestoneEl.style.display = 'none';
+      }
+
+    }
+
+    // 页面加载时执行
+    updateCounters();
+  </script>
+
+</body>
+</html>
